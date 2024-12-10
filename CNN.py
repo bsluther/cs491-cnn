@@ -142,7 +142,32 @@ class CNN:
     def backprop(self):
         pass
 
+    def backprop_max_pool(self, dL_dout, x, pool_size = (2,2), stride = 2):
+        """
+        Perform backpropagation through a max pooling layer.
+        - dL_dout: the gradient of loss with respect to the output of the max pool layer.
+        - x: input data to the max pooling layer (from the forward pass).
+        - pool_size: Tuple (pool_height, pool_width).
+        - stride: stride of pooling.
+        """
+        # Initialize the gradient for the input to the same shape as the input_data
+        dL_in = np.zeros_like(x)
 
+        batch_size, height, width, channels = x.shape
+
+        # iterate through each input in the batch
+        for b in range(batch_size):
+            for c in range(channels):
+                for h in range(0, height - pool_size[0] + 1, stride):
+                    for w in range(0, width - pool_size[1] + 1, stride):
+                        # Define the current window
+                        window = x[b, h:h + pool_size[0], w:w + pool_size[1], c]
+                        # Find the index of the maximum value in the window
+                        max_idx = np.unravel_index(np.argmax(window), window.shape)
+                        # Assign the gradient from dL_dout to the max value position
+                        dL_in[b, h + max_idx[0], w + max_idx[1], c] = dL_dout[b, h // stride, w // stride, c]
+
+        return dL_in
 
     # backpropagation for a single convolution (Not correct probably)
     def back_prop_single_conv(self, input_data, dL_dY, kernels, stride=1, padding=1):
