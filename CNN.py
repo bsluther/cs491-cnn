@@ -190,8 +190,27 @@ class CNN:
                               stride=stride,
                               padding=padding
                             )
+        # get lengths and dimensions to iterate over
+        b ,h_in, w_in, c_in = input_data.shape # b = batch size, h = input height, w = input width , c = input channels
+        f,k_h,k_w, _ = kernels.shape # f - filters, h - kernal height, w - keneral width
+        _, h_out,w_out,_ =dL_dY.shape # h - output height , w- output width
+        padded = np.pad(input_data, (0,0),(padding,padding),(padding,padding), (0,0)) # add padding that was done during the forward pass, index matching
+    
+        # dL/dk (f, k_h,w_h,c) = sigma b,h_out,w_out over x(b,h_out*stride+k_h,w_out*stride+k_w,c)*dl/dy(b,h_out,w_out,f)
+        for f in range(f): #loop kernal
+            for k_h_input in range(k_h): #loop height
+                for k_w_input in range(k_w): #loop width
+                    for c in range(c_in):#loop input
+                        val = 0.0 # gradient accumulation
+                        for b in range(b):
+                            for h_out_i in range(h_out):
+                                for w_out_i in range(w_out): # for the output compute the corresponding corrd
+                                    h_in = h_out_i * stride + k_h_input
+                                    w_in = w_out_i * stride + k_w_input
+                                    val += padded[b, h_in, w_in, c] * dL_dY[b, h_out_i, w_out_i, f]
+                        dL_dK[f, k_h_input, k_w_input, c] = val#store grad for position
 
-
+        return dL_dX, dL_dK, dL_db
 
         # for f in range(kernels.shape[0]):
         #     dL_dK[kernel_indx] = self.convolve( # we convolve over the input for the current partial
@@ -203,4 +222,3 @@ class CNN:
         #     )
 
             # need to rotate the kernel by 180 degrees
-        pass
