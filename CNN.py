@@ -294,22 +294,22 @@ class CNN:
 
         batch_size = y_true.shape[0]
 
-        # Convert one-hot encoded y_true to class indices if needed
-        if len(y_true.shape) > 1:  # Check for one-hot encoding
+        # convert one-hot encoded y_true to class indices
+        if len(y_true.shape) > 1:
             y_true_indices = np.argmax(y_true, axis=1)
         else:
             y_true_indices = y_true
 
-        # Avoid modifying probs directly to prevent side effects
+        # advoid modifying probs directly to prevent side effects
         dL_dlogits = np.copy(probs)
 
-        # Select the probabilities corresponding to the true classes
+        # select the probabilities corresponding to the true classes
         correct_probs = probs[range(batch_size), y_true_indices]
 
-        # Compute the cross-entropy loss
+        # compute the cross-entropy loss
         loss = -np.sum(np.log(correct_probs)) / batch_size
 
-        # Compute the gradient with respect to logits
+        # compute the gradient with respect to logits
         dL_dlogits[range(batch_size), y_true_indices] -= 1
         dL_dlogits /= batch_size
 
