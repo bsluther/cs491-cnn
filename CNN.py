@@ -137,3 +137,70 @@ class CNN:
         print("Shape after second max pool:", x.shape)
 
         return x
+
+    # backpropagation method
+    def backprop(self):
+        pass
+
+    def backprop_max_pool(self, dL_dout, x, pool_size = (2,2), stride = 2):
+        """
+        Perform backpropagation through a max pooling layer.
+        - dL_dout: the gradient of loss with respect to the output of the max pool layer.
+        - x: input data to the max pooling layer (from the forward pass).
+        - pool_size: Tuple (pool_height, pool_width).
+        - stride: stride of pooling.
+        """
+        # Initialize the gradient for the input to the same shape as the input_data
+        dL_in = np.zeros_like(x)
+
+        batch_size, height, width, channels = x.shape
+
+        # iterate through each input in the batch
+        for b in range(batch_size):
+            for c in range(channels):
+                for h in range(0, height - pool_size[0] + 1, stride):
+                    for w in range(0, width - pool_size[1] + 1, stride):
+                        # Define the current window
+                        window = x[b, h:h + pool_size[0], w:w + pool_size[1], c]
+                        # Find the index of the maximum value in the window
+                        max_idx = np.unravel_index(np.argmax(window), window.shape)
+                        # Assign the gradient from dL_dout to the max value position
+                        dL_in[b, h + max_idx[0], w + max_idx[1], c] = dL_dout[b, h // stride, w // stride, c]
+
+        return dL_in
+
+    # backpropagation for a single convolution (Not correct probably)
+    def back_prop_single_conv(self, input_data, dL_dY, kernels, stride=1, padding=1):
+
+        dL_dX = np.zeros_like(input_data) # gradient with respect to the input
+        dL_dK = np.zeros_like(kernels) # gradient with respect to the kernels
+        dL_db = np.sum(dL_dY, axis=(0, 1, 2)) # gradient with respect to the biases (One per kernel)
+
+        rotated_kernels = np.zeros_like(kernels)
+
+        # rotate all the kernels by 180 degrees
+        for kernel_indx in range((kernels.shape[0])):
+            current_kernel = kernels[kernel_indx]
+            rotated_kernels[kernel_indx] = np.rot90(current_kernel, 2, (0, 1)) # rotate the kernel by 180 degrees
+
+        # compute the dL/dX by convolving dL/dY with all the rotated kernels
+        dL_dX = self.convolve(dL_dY, # we convolve over the output
+                              rotated_kernels,
+                              biases=np.zeros(kernels.shape[0]),
+                              stride=stride,
+                              padding=padding
+                            )
+
+
+
+        # for f in range(kernels.shape[0]):
+        #     dL_dK[kernel_indx] = self.convolve( # we convolve over the input for the current partial
+        #         input_data,
+        #         dL_dY[kernel_indx],
+        #         biases = None,
+        #         stride=stride,
+        #         padding=padding
+        #     )
+
+            # need to rotate the kernel by 180 degrees
+        pass
