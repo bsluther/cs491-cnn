@@ -27,9 +27,11 @@ print("Sample one-hot encoded label:", y_train_one_hot[0])
 # Splitting the dataset into mini-batches
 batch_size = 64
 
+
 def create_batches(data, labels, batch_size):
     for i in range(0, len(data), batch_size):
-        yield data[i:i + batch_size], labels[i:i + batch_size]
+        yield data[i : i + batch_size], labels[i : i + batch_size]
+
 
 # Creating an instance of the CNN class
 input_shape = (32, 32, 3)
@@ -37,13 +39,15 @@ num_classes = 10
 lenet5 = CNN(input_shape, num_classes)
 
 # Hyperparameters
-learning_rate = 0.001
+learning_rate = 0.01
 epochs = 5
+
 
 # Loss function: categorical cross-entropy
 def cross_entropy_loss(y_true, y_pred):
-    y_pred = np.clip(y_pred, 1e-12, 1. - 1e-12)  # Avoid division by zero
+    y_pred = np.clip(y_pred, 1e-12, 1.0 - 1e-12)  # Avoid division by zero
     return -np.sum(y_true * np.log(y_pred)) / y_true.shape[0]
+
 
 # Training loop
 for epoch in range(epochs):
@@ -54,10 +58,11 @@ for epoch in range(epochs):
     batch_count = 0
 
     for x_batch, y_batch in train_batches:
+        print(f"Starting batch {batch_count + 1}")
         lenet5.forward(x_batch)
         # Backward propagation
-        lenet5.backprop(x_batch, y_batch)
-
+        loss = lenet5.backprop(x_batch, y_batch)
+        print(f"Batch {batch_count + 1} loss: {loss}")
         batch_count += 1
 
     avg_loss = total_loss / batch_count

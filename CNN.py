@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class CNN:
     def __init__(self, input_shape, num_classes):
         """
@@ -18,7 +19,7 @@ class CNN:
 
         self.input_shape = input_shape
         self.num_classes = num_classes
-        
+
         # I am defining the layers of LeNet-5 here. Starting with convolution layers.
         # The first convolutional layer has 6 filters of size 5x5x(input_channels).
         self.conv1_filters = np.random.randn(6, 5, 5, input_shape[2]) * 0.01
@@ -30,7 +31,7 @@ class CNN:
         self.conv2_out = None
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
-        self.fc1_weights = np.random.randn(120, 576) * 0.01
+        self.fc1_weights = np.random.randn(120, 400) * 0.01
         self.fc1_biases = np.zeros(120)
         self.fc1_out = None
         self.fc2_weights = np.random.randn(84, 120) * 0.01
@@ -58,18 +59,18 @@ class CNN:
         batch_size, height, width, channels = x.shape
         pooled_height = (height - pool_size[0]) // stride + 1
         pooled_width = (width - pool_size[1]) // stride + 1
-        
+
         # Initializing pooled output with zeros.
         pooled = np.zeros((batch_size, pooled_height, pooled_width, channels))
-        
+
         # Iterating over each pooling window.
         for b in range(batch_size):
             for h in range(0, height - pool_size[0] + 1, stride):
                 for w in range(0, width - pool_size[1] + 1, stride):
                     for c in range(channels):
-                        window = x[b, h:h + pool_size[0], w:w + pool_size[1], c]
+                        window = x[b, h : h + pool_size[0], w : w + pool_size[1], c]
                         pooled[b, h // stride, w // stride, c] = np.max(window)
-        
+
         return pooled
 
     def convolve(self, x, filters, biases, stride=1, padding=0):
@@ -83,28 +84,33 @@ class CNN:
         """
         # Adding padding to input.
         if padding > 0:
-            x = np.pad(x, 
-                       ((0, 0), (padding, padding), (padding, padding), (0, 0)), 
-                       mode='constant', constant_values=0)
-        
+            x = np.pad(
+                x,
+                ((0, 0), (padding, padding), (padding, padding), (0, 0)),
+                mode="constant",
+                constant_values=0,
+            )
+
         batch_size, height, width, channels = x.shape
         num_filters, filter_height, filter_width, _ = filters.shape
-        
+
         # Calculating the output dimensions.
         output_height = (height - filter_height) // stride + 1
         output_width = (width - filter_width) // stride + 1
-        
+
         # Initializing output tensor.
         output = np.zeros((batch_size, output_height, output_width, num_filters))
-        
+
         # Iterating over the input to perform convolution.
         for b in range(batch_size):
             for h in range(0, height - filter_height + 1, stride):
                 for w in range(0, width - filter_width + 1, stride):
                     for f in range(num_filters):
-                        region = x[b, h:h + filter_height, w:w + filter_width, :]
-                        output[b, h // stride, w // stride, f] = np.sum(region * filters[f]) + biases[f]
-        
+                        region = x[b, h : h + filter_height, w : w + filter_width, :]
+                        output[b, h // stride, w // stride, f] = (
+                            np.sum(region * filters[f]) + biases[f]
+                        )
+
         return output
 
     def forward(self, x):
@@ -113,28 +119,36 @@ class CNN:
         - x: Input data (batch_size, height, width, channels).
         """
         # First convolutional layer + ReLU activation.
-        self.conv1_out = self.convolve(x, self.conv1_filters, self.conv1_biases, stride=1, padding=2)
+        self.conv1_out = self.convolve(
+            x, self.conv1_filters, self.conv1_biases, stride=1, padding=0
+        )
         self.relu1_out = self.relu(self.conv1_out)
-        
+
         # First max pooling layer.
         self.pool1_out = self.max_pool(self.relu1_out, pool_size=(2, 2), stride=2)
 
         # Second convolutional layer + ReLU activation.
-        self.conv2_out = self.convolve(self.pool1_out, self.conv2_filters, self.conv2_biases, stride=1, padding=0)
+        self.conv2_out = self.convolve(
+            self.pool1_out, self.conv2_filters, self.conv2_biases, stride=1, padding=0
+        )
         self.relu2_out = self.relu(self.conv2_out)
-        
+
         # Second max pooling layer.
         self.pool2_out = self.max_pool(self.relu2_out, pool_size=(2, 2), stride=2)
-        
+
         # Flatten the output for the fully connected layers.
         self.flattened = self.pool2_out.reshape(self.pool2_out.shape[0], -1)
-        
+
         # First fully connected layer + ReLU activation.
-        self.fc1_out = self.relu(np.dot(self.fc1_weights, self.flattened.T).T + self.fc1_biases)
-        
+        self.fc1_out = self.relu(
+            np.dot(self.fc1_weights, self.flattened.T).T + self.fc1_biases
+        )
+
         # Second fully connected layer + ReLU activation.
-        self.fc2_out = self.relu(np.dot(self.fc2_weights, self.fc1_out.T).T + self.fc2_biases)
-        
+        self.fc2_out = self.relu(
+            np.dot(self.fc2_weights, self.fc1_out.T).T + self.fc2_biases
+        )
+
         # Output layer (identity activation).
         self.output = np.dot(self.output_weights, self.fc2_out.T).T + self.output_biases
 
@@ -182,22 +196,30 @@ class CNN:
         dL_dpool2_out = dL_dflattened.reshape(self.pool2_out.shape)
 
         # backprop through max pool 2
-        dL_drelu2_out = self.backprop_max_pool(dL_dpool2_out, self.relu2_out, pool_size=(2, 2), stride=2)
+        dL_drelu2_out = self.backprop_max_pool(
+            dL_dpool2_out, self.relu2_out, pool_size=(2, 2), stride=2
+        )
 
         # backprop through ReLU 2
         dL_dconv2_out = dL_drelu2_out * self.relu_derivative(self.conv2_out)
 
         # backprop through convolution 2
-        dL_dpool1_out, dL_dconv2_filters, dL_dconv2_biases = self.back_prop_single_conv(self.pool1_out, dL_dconv2_out, self.conv2_filters)
+        dL_dpool1_out, dL_dconv2_filters, dL_dconv2_biases = self.back_prop_single_conv(
+            self.pool1_out, dL_dconv2_out, self.conv2_filters
+        )
 
         # backprop through max pool 1
-        dL_drelu1_out = self.backprop_max_pool(dL_dpool1_out, self.relu1_out, pool_size=(2, 2), stride=2)
+        dL_drelu1_out = self.backprop_max_pool(
+            dL_dpool1_out, self.relu1_out, pool_size=(2, 2), stride=2
+        )
 
         # backprop through ReLU 1
         dL_dconv1_out = dL_drelu1_out * self.relu_derivative(self.conv1_out)
 
         # backprop through convolution 1
-        _, dL_dconv1_filters, dL_dconv1_biases = self.back_prop_single_conv(x, dL_dconv1_out, self.conv1_filters)
+        _, dL_dconv1_filters, dL_dconv1_biases = self.back_prop_single_conv(
+            x, dL_dconv1_out, self.conv1_filters
+        )
 
         # update
         self.output_weights -= learning_rate * dL_doutput_weights
@@ -212,7 +234,6 @@ class CNN:
         self.conv1_biases -= learning_rate * dL_dconv1_biases
 
         return loss
-
 
     def backprop_max_pool(self, dL_dout, x, pool_size=(2, 2), stride=2):
         # initialize the gradient
@@ -239,52 +260,114 @@ class CNN:
                         max_idx = np.unravel_index(np.argmax(window), window.shape)
 
                         # map the gradient back to the maximum value position in the input
-                        dL_in[b, h_start + max_idx[0], w_start + max_idx[1], c] += dL_dout[b, h_out, w_out, c]
+                        dL_in[
+                            b, h_start + max_idx[0], w_start + max_idx[1], c
+                        ] += dL_dout[b, h_out, w_out, c]
 
         return dL_in
 
     def back_prop_single_conv(self, input_data, dL_dY, kernels, stride=1, padding=1):
 
-        dL_dX = np.zeros_like(input_data) # gradient with respect to the input
-        dL_dK = np.zeros_like(kernels) # gradient with respect to the kernels
-        dL_db = np.sum(dL_dY, axis=(0, 1, 2)) # gradient with respect to the biases (One per kernel)
+        padding2 = kernels.shape[1] - 1
+
+        dL_dX = np.zeros_like(input_data)  # gradient with respect to the input
+        dL_dK = np.zeros_like(kernels)  # gradient with respect to the kernels
+        dL_db = np.sum(
+            dL_dY, axis=(0, 1, 2)
+        )  # gradient with respect to the biases (One per kernel)
 
         rotated_kernels = np.zeros_like(kernels)
 
         # rotate all the kernels by 180 degrees
         for kernel_indx in range((kernels.shape[0])):
             current_kernel = kernels[kernel_indx]
-            rotated_kernels[kernel_indx] = np.rot90(current_kernel, 2, (0, 1)) # rotate the kernel by 180 degrees
+            rotated_kernels[kernel_indx] = np.rot90(
+                current_kernel, 2, (0, 1)
+            )  # rotate the kernel by 180 degrees
 
         # compute the dL/dX by convolving dL/dY with all the rotated kernels
-        dL_dX = self.convolve(dL_dY, # we convolve over the output
-                              rotated_kernels,
-                              biases=np.zeros(kernels.shape[0]),
-                              stride=stride,
-                              padding=padding
-                              )
+        # dL_dX = self.convolve(
+        #     dL_dY,  # we convolve over the output
+        #     rotated_kernels,
+        #     biases=np.zeros(kernels.shape[0]),
+        #     stride=stride,
+        #     padding=padding2,
+        # )
+
+        ### ALTERNATE dL/dX
+        # Build up dL/dX one channel at a time
+        for i in range((input_data.shape[3])):
+            # Pick the ith channel out of every kernel
+            expanded = np.expand_dims(rotated_kernels[:, :, :, i], axis=3)
+            # (p x n x n x 1) -> (1 x n x n x p) to match the shape convolve expects
+            swapped = np.swapaxes(expanded, 0, 3)
+            res = self.convolve(
+                dL_dY,
+                swapped,
+                biases=np.zeros(kernels.shape[0]),
+                stride=stride,
+                padding=padding2,
+            )
+            dL_dX[:, :, :, i] = np.squeeze(res)
+
+        ### ALTERNATE dL/dK
+        for j in range(kernels.shape[3]):
+            for i in range(kernels.shape[0]):
+                res = self.convolve(
+                    input_data[:, :, :, i],
+                    dL_dY[:, :, :, j],
+                    np.zeros(1),
+                    stride=1,
+                    padding=0,
+                )
+        # dL_dK = self.convolve(
+        #     dL_dY, input_data, biases=np.zeros(input_data.shape[1]), stride=1, padding=0
+        # )
+        ###
+
         # get lengths and dimensions to iterate over
-        b ,h_in, w_in, c_in = input_data.shape # b = batch size, h = input height, w = input width , c = input channels
-        f,k_h,k_w, _ = kernels.shape # f - filters, h - kernal height, w - keneral width
-        _, h_out,w_out,_ =dL_dY.shape # h - output height , w- output width
-        padded = np.pad(input_data, (0,0),(padding,padding),(padding,padding), (0,0)) # add padding that was done during the forward pass, index matching
+        b, h_in, w_in, c_in = (
+            input_data.shape
+        )  # b = batch size, h = input height, w = input width , c = input channels
+        f, k_h, k_w, _ = (
+            kernels.shape
+        )  # f - filters, h - kernal height, w - keneral width
+        _, h_out, w_out, _ = dL_dY.shape  # h - output height , w- output width
+
+        # padded = np.pad(
+        #     input_data, (0, 0), (padding, padding), (padding, padding), (0, 0)
+        # )  # add padding that was done during the forward pass, index matching
+
+        ### CHANGED
+        padded = np.pad(
+            input_data,
+            ((0, 0), (padding, padding), (padding, padding), (0, 0)),
+            "constant",
+            constant_values=0,
+        )
 
         # dL/dk (f, k_h,w_h,c) = sigma b,h_out,w_out over x(b,h_out*stride+k_h,w_out*stride+k_w,c)*dl/dy(b,h_out,w_out,f)
-        for f in range(f): #loop kernal
-            for k_h_input in range(k_h): #loop height
-                for k_w_input in range(k_w): #loop width
-                    for c in range(c_in):#loop input
-                        val = 0.0 # gradient accumulation
+        for f in range(f):  # loop kernal
+            for k_h_input in range(k_h):  # loop height
+                for k_w_input in range(k_w):  # loop width
+                    for c in range(c_in):  # loop input
+                        val = 0.0  # gradient accumulation
                         for b in range(b):
                             for h_out_i in range(h_out):
-                                for w_out_i in range(w_out): # for the output compute the corresponding corrd
+                                for w_out_i in range(
+                                    w_out
+                                ):  # for the output compute the corresponding corrd
                                     h_in = h_out_i * stride + k_h_input
                                     w_in = w_out_i * stride + k_w_input
-                                    val += padded[b, h_in, w_in, c] * dL_dY[b, h_out_i, w_out_i, f]
-                        dL_dK[f, k_h_input, k_w_input, c] = val#store grad for position
+                                    val += (
+                                        padded[b, h_in, w_in, c]
+                                        * dL_dY[b, h_out_i, w_out_i, f]
+                                    )
+                        dL_dK[f, k_h_input, k_w_input, c] = (
+                            val  # store grad for position
+                        )
 
         return dL_dX, dL_dK, dL_db
-
 
     def softmax(self, x):
         exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
@@ -315,14 +398,13 @@ class CNN:
 
         return loss, dL_dlogits
 
-
     # for f in range(kernels.shape[0]):
-        #     dL_dK[kernel_indx] = self.convolve( # we convolve over the input for the current partial
-        #         input_data,
-        #         dL_dY[kernel_indx],
-        #         biases = None,
-        #         stride=stride,
-        #         padding=padding
-        #     )
+    #     dL_dK[kernel_indx] = self.convolve( # we convolve over the input for the current partial
+    #         input_data,
+    #         dL_dY[kernel_indx],
+    #         biases = None,
+    #         stride=stride,
+    #         padding=padding
+    #     )
 
-            # need to rotate the kernel by 180 degrees
+    # need to rotate the kernel by 180 degrees
