@@ -39,7 +39,7 @@ num_classes = 10
 lenet5 = CNN(input_shape, num_classes)
 
 # Hyperparameters
-learning_rate = 0.01
+learning_rate = 0.1
 epochs = 1
 
 
