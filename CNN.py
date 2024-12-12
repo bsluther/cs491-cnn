@@ -32,12 +32,18 @@ class CNN:
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
         self.fc1_weights = np.random.randn(120, 400) * 0.01
+        # self.fc1_weights = np.random.normal(0, np.sqrt(2 / 400), size=(120, 400))
+
         self.fc1_biases = np.zeros(120)
         self.fc1_out = None
         self.fc2_weights = np.random.randn(84, 120) * 0.01
+        # self.fc2_weights = np.random.normal(0, np.sqrt(2 / 120), size=(84, 120))
         self.fc2_biases = np.zeros(84)
         self.fc2_out = None
         self.output_weights = np.random.randn(num_classes, 84) * 0.01
+        # self.output_weights = np.random.normal(
+        #     0, np.sqrt(2 / 84), size=(num_classes, 84)
+        # )
         self.output_biases = np.zeros(num_classes)
 
     def relu(self, x):
@@ -366,11 +372,6 @@ class CNN:
             input_data, dL_dY, kernels, stride, padding
         )
         dL_dX = other_dL_dX
-
-        other_dL_dK = self.backprop_kernel_gradient(
-            input_data, dL_dY, kernels, stride, padding
-        )
-        dL_dK = other_dL_dK
         # comparison = np.allclose(dL_dX, other, 1e-100)
 
         # get lengths and dimensions to iterate over
@@ -415,6 +416,12 @@ class CNN:
         #                     val  # store grad for position
         #                 )
 
+        other_dL_dK = self.backprop_kernel_gradient(
+            input_data, dL_dY, kernels, stride, padding
+        )
+        dL_dK = other_dL_dK
+        # comparison = np.allclose(dL_dK, other_dL_dX, 1e-100)
+        bp = 1
         return dL_dX, dL_dK, dL_db
 
     def softmax(self, x):

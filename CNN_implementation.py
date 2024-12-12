@@ -39,7 +39,7 @@ num_classes = 10
 lenet5 = CNN(input_shape, num_classes)
 
 # Hyperparameters
-learning_rate = 0.01
+learning_rate = 0.1
 epochs = 1
 
 
@@ -53,7 +53,7 @@ def cross_entropy_loss(y_true, y_pred):
 for epoch in range(epochs):
     print(f"\nEpoch {epoch + 1}/{epochs}")
     train_batches = create_batches(
-        x_train[0:256, :], y_train_one_hot[0:256, :], batch_size
+        x_train[0:512, :], y_train_one_hot[0:512, :], batch_size
     )
 
     total_loss = 0
@@ -72,7 +72,7 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1} completed. Average Loss: {avg_loss:.4f}")
 
 # Testing the trained model
-test_batches = create_batches(x_test, y_test_one_hot, batch_size)
+test_batches = create_batches(x_test[:1024, :], y_test_one_hot[:1024, :], batch_size)
 correct_predictions = 0
 total_samples = 0
 
