@@ -27,8 +27,38 @@ a = np.array(
     ]
 )
 b = a[:, 1, :, :]
-print(a.shape)
-print(b)
+# print(a.shape)
+# print(b)
+
+
+def convolve2d(x, filter, padding):
+    if padding > 0:
+        x = np.pad(
+            x,
+            ((padding, padding), (padding, padding)),
+            mode="constant",
+            constant_values=0,
+        )
+    in_height, in_width = x.shape
+    f_height, f_width = filter.shape
+    out_height = in_height - f_height + 1
+    out_width = in_width - f_width + 1
+    output = np.zeros((out_height, out_width))
+    for row_offset in range(out_height):
+        for col_offset in range(out_width):
+            region = x[
+                row_offset : row_offset + f_height, col_offset : col_offset + f_width
+            ]
+            output[row_offset, col_offset] = np.sum(region * filter)
+    return output
+
+
+x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+f = np.array([[0, 1], [2, 3]])
+res = convolve2d(x, f, 1)
+# print(res)
+# print(x / 2)
+
 
 # input_shape = (32, 32, 3)
 # num_classes = 10
