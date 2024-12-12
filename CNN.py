@@ -22,28 +22,37 @@ class CNN:
 
         # I am defining the layers of LeNet-5 here. Starting with convolution layers.
         # The first convolutional layer has 6 filters of size 5x5x(input_channels).
-        self.conv1_filters = np.random.randn(6, 5, 5, input_shape[2]) * 0.01
+        # self.conv1_filters = np.random.randn(6, 5, 5, input_shape[2]) * 0.01
+        self.conv1_filters = np.random.normal(
+            0, np.sqrt(2 / (6 * 5 * 5 * input_shape[2])), size=(6, 5, 5, input_shape[2])
+        )
         self.conv1_biases = np.zeros(6)
         self.conv1_out = None
+
         # The second convolutional layer has 16 filters of size 5x5x6.
-        self.conv2_filters = np.random.randn(16, 5, 5, 6) * 0.01
+        # self.conv2_filters = np.random.randn(16, 5, 5, 6) * 0.01
+        self.conv2_filters = np.random.normal(
+            0, np.sqrt(2 / (16 * 5 * 5 * 6)), size=(16, 5, 5, 6)
+        )
         self.conv2_biases = np.zeros(16)
         self.conv2_out = None
+
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
-        self.fc1_weights = np.random.randn(120, 400) * 0.01
-        # self.fc1_weights = np.random.normal(0, np.sqrt(2 / 400), size=(120, 400))
-
+        # self.fc1_weights = np.random.randn(120, 400) * 0.01
+        self.fc1_weights = np.random.normal(0, np.sqrt(2 / 400), size=(120, 400))
         self.fc1_biases = np.zeros(120)
         self.fc1_out = None
-        self.fc2_weights = np.random.randn(84, 120) * 0.01
-        # self.fc2_weights = np.random.normal(0, np.sqrt(2 / 120), size=(84, 120))
+
+        # self.fc2_weights = np.random.randn(84, 120) * 0.01
+        self.fc2_weights = np.random.normal(0, np.sqrt(2 / 120), size=(84, 120))
         self.fc2_biases = np.zeros(84)
         self.fc2_out = None
-        self.output_weights = np.random.randn(num_classes, 84) * 0.01
-        # self.output_weights = np.random.normal(
-        #     0, np.sqrt(2 / 84), size=(num_classes, 84)
-        # )
+
+        # self.output_weights = np.random.randn(num_classes, 84) * 0.01
+        self.output_weights = np.random.normal(
+            0, np.sqrt(2 / 84), size=(num_classes, 84)
+        )
         self.output_biases = np.zeros(num_classes)
 
     def relu(self, x):
@@ -53,6 +62,12 @@ class CNN:
     def relu_derivative(self, x):
         """Derivative of ReLU used during backpropagation."""
         return (x > 0).astype(float)
+
+    def leaky_relu(self, x):
+        return np.where(x > 0, x, x * 0.01)
+
+    def leaky_relu_derivative(self, x):
+        return np.where(x > 0, 1, 0.01)
 
     def max_pool(self, x, pool_size, stride):
         """
@@ -128,7 +143,7 @@ class CNN:
         self.conv1_out = self.convolve(
             x, self.conv1_filters, self.conv1_biases, stride=1, padding=0
         )
-        self.relu1_out = self.relu(self.conv1_out)
+        self.relu1_out = self.leaky_relu(self.conv1_out)
 
         # First max pooling layer.
         self.pool1_out = self.max_pool(self.relu1_out, pool_size=(2, 2), stride=2)
@@ -137,7 +152,7 @@ class CNN:
         self.conv2_out = self.convolve(
             self.pool1_out, self.conv2_filters, self.conv2_biases, stride=1, padding=0
         )
-        self.relu2_out = self.relu(self.conv2_out)
+        self.relu2_out = self.leaky_relu(self.conv2_out)
 
         # Second max pooling layer.
         self.pool2_out = self.max_pool(self.relu2_out, pool_size=(2, 2), stride=2)
@@ -197,6 +212,7 @@ class CNN:
         dL_dfc1_weights = np.dot(dL_dfc1_out_relu.T, self.flattened)
         dL_dfc1_biases = np.sum(dL_dfc1_out_relu, axis=0)
         dL_dflattened = np.dot(dL_dfc1_out_relu, self.fc1_weights)
+        print(f"dL_dfc1_out min = {dL_dfc1_out.min()}, max = {dL_dfc1_out.max()}")
 
         # gradients for flattened input
         dL_dpool2_out = dL_dflattened.reshape(self.pool2_out.shape)
@@ -207,12 +223,13 @@ class CNN:
         )
 
         # backprop through ReLU 2
-        dL_dconv2_out = dL_drelu2_out * self.relu_derivative(self.conv2_out)
+        dL_dconv2_out = dL_drelu2_out * self.leaky_relu_derivative(self.conv2_out)
 
         # backprop through convolution 2
         dL_dpool1_out, dL_dconv2_filters, dL_dconv2_biases = self.back_prop_single_conv(
             self.pool1_out, dL_dconv2_out, self.conv2_filters
         )
+        print(f"dL_dpool2_out min={dL_dpool1_out.min()}, max={dL_dpool1_out.max()}")
 
         # backprop through max pool 1
         dL_drelu1_out = self.backprop_max_pool(
@@ -220,7 +237,7 @@ class CNN:
         )
 
         # backprop through ReLU 1
-        dL_dconv1_out = dL_drelu1_out * self.relu_derivative(self.conv1_out)
+        dL_dconv1_out = dL_drelu1_out * self.leaky_relu_derivative(self.conv1_out)
 
         # backprop through convolution 1
         _, dL_dconv1_filters, dL_dconv1_biases = self.back_prop_single_conv(

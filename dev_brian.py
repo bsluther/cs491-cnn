@@ -26,9 +26,9 @@ a = np.array(
         ],
     ]
 )
-b = a[:, 1, :, :]
+b = a[1]
 # print(a.shape)
-# print(b)
+print(b.reshape(b.shape[0], -1))
 
 
 def convolve2d(x, filter, padding):
@@ -53,9 +53,9 @@ def convolve2d(x, filter, padding):
     return output
 
 
-x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
-f = np.array([[0, 1], [2, 3]])
-res = convolve2d(x, f, 1)
+# x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+# f = np.array([[0, 1], [2, 3]])
+# res = convolve2d(x, f, 1)
 # print(res)
 # print(x / 2)
 

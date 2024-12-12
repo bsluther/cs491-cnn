@@ -22,7 +22,7 @@ epochs = 1
 
 def create_batches(data, labels, batch_size):
     for i in range(0, len(data), batch_size):
-        yield data[i:i + batch_size], labels[i:i + batch_size]
+        yield data[i : i + batch_size], labels[i : i + batch_size]
 
 
 for epoch in range(epochs):
@@ -33,13 +33,20 @@ for epoch in range(epochs):
     batch_count = 0
 
     for x_batch, y_batch in train_batches:
+        padding = 2
+        x_batch_padded = np.pad(
+            x_batch,
+            ((0, 0), (padding, padding), (padding, padding), (0, 0)),
+            mode="constant",
+            constant_values=0,
+        )
         # Forward pass
-        lenet5.forward(x_batch)
+        lenet5.forward(x_batch_padded)
         # Backprop and update weights
-        loss = lenet5.backprop(x_batch, y_batch, learning_rate=0.001)
+        loss = lenet5.backprop(x_batch_padded, y_batch, learning_rate=0.001)
         total_loss += loss
         batch_count += 1
-        print(f"Current loss: {total_loss}")
+        print(f"Current loss: {loss}")
 
     avg_loss = total_loss / batch_count
     print(f"Epoch {epoch + 1} completed. Average Loss: {avg_loss:.4f}")
