@@ -338,7 +338,7 @@ class CNN:
             for i in range(in_depth):
                 for j in range(num_kernels):
                     dL_dX[batch, :, :, i] += convolve2d(
-                        dL_dY[batch, :, :, i], rotated_kernels[j, :, :, i], padding
+                        dL_dY[batch, :, :, j], rotated_kernels[j, :, :, i], padding
                     )
         return dL_dX
         ### ALTERNATE dL/dX
