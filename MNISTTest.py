@@ -41,7 +41,7 @@ for epoch in range(epochs):
             constant_values=0,
         )
         # Forward pass
-        lenet5.forward(x_batch)
+        lenet5.forward(x_batch_padded)
         # print("Conv1 Output Mean:", np.mean(lenet5.conv1_out))
         # print("Pool1 Output Mean:", np.mean(lenet5.pool1_out))
         # print("Conv2 Output Mean:", np.mean(lenet5.conv2_out))
@@ -50,7 +50,7 @@ for epoch in range(epochs):
         # print("Input range (train):", x_train.min(), x_train.max())
         # print("Input range (test):", x_test.min(), x_test.max())
         loss = lenet5.backprop(
-            x_batch, y_batch, learning_rate=0.01, learning_rate_conv=0.5
+            x_batch_padded, y_batch, learning_rate=0.01, learning_rate_conv=0.5
         )
 
         total_loss += loss

@@ -39,7 +39,7 @@ class CNN:
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
         # self.fc1_weights = np.random.randn(120, 256) * 0.01
-        self.fc1_weights = np.random.randn(120, 256) * np.sqrt(2 / 256)
+        self.fc1_weights = np.random.randn(120, 400) * np.sqrt(2 / 400)
         self.fc1_biases = np.zeros(120)
         self.fc1_out = None
         # self.fc2_weights = np.random.randn(84, 120) * 0.01
