@@ -35,13 +35,16 @@ class CNN:
 
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
-        self.fc1_weights = np.random.randn(120, 256) * 0.01
+        # self.fc1_weights = np.random.randn(120, 256) * 0.01
+        self.fc1_weights = np.random.randn(120, 256) * np.sqrt(2 / 256)
         self.fc1_biases = np.zeros(120)
         self.fc1_out = None
-        self.fc2_weights = np.random.randn(84, 120) * 0.01
+        # self.fc2_weights = np.random.randn(84, 120) * 0.01
+        self.fc2_weights = np.random.randn(84, 120) * np.sqrt(2 / 120)
         self.fc2_biases = np.zeros(84)
         self.fc2_out = None
-        self.output_weights = np.random.randn(num_classes, 84) * 0.01
+        # self.output_weights = np.random.randn(num_classes, 84) * 0.01
+        self.output_weights = np.random.randn(num_classes, 84) * np.sqrt(2 / 84)
         self.output_biases = np.zeros(num_classes)
 
 
@@ -114,11 +117,11 @@ class CNN:
                     for f in range(num_filters):
                         region = x[b, h : h + filter_height, w : w + filter_width, :]
 
-                        print(f"Region at batch {b}, h {h}, w {w}, filter {f}:")
-                        print(region)
-                        print(f"Kernel:\n{filters[f]}")
-                        print(f"Dot Product: {np.sum(region * filters[f])}")
-                        print(f"With Bias: {np.sum(region * filters[f]) + biases[f]}")
+                        # print(f"Region at batch {b}, h {h}, w {w}, filter {f}:")
+                        # print(region)
+                        # print(f"Kernel:\n{filters[f]}")
+                        # print(f"Dot Product: {np.sum(region * filters[f])}")
+                        # print(f"With Bias: {np.sum(region * filters[f]) + biases[f]}")
 
                         output[b, h // stride, w // stride, f] = (
                             np.sum(region * filters[f]) + biases[f]
@@ -247,12 +250,12 @@ class CNN:
         self.conv1_filters -= learning_rate * dL_dconv1_filters
         self.conv1_biases -= learning_rate * dL_dconv1_biases
 
-        print("Conv2 Filter Range:", self.conv2_filters.min(), self.conv2_filters.max())
-
-        print("Activation after Conv1:", np.linalg.norm(self.relu1_out))
-        print("Activation after Pool1:", np.linalg.norm(self.pool1_out))
-        print("Activation after Conv2:", np.linalg.norm(self.relu2_out))
-        print("Activation after Pool2:", np.linalg.norm(self.pool2_out))
+        # print("Conv2 Filter Range:", self.conv2_filters.min(), self.conv2_filters.max())
+        #
+        # print("Activation after Conv1:", np.linalg.norm(self.relu1_out))
+        # print("Activation after Pool1:", np.linalg.norm(self.pool1_out))
+        # print("Activation after Conv2:", np.linalg.norm(self.relu2_out))
+        # print("Activation after Pool2:", np.linalg.norm(self.pool2_out))
 
         print("========================")
 
@@ -260,19 +263,19 @@ class CNN:
         # print("Gradients at FC1 Weights:", np.linalg.norm(dL_dfc1_weights))
         # print("Gradients at Conv2 Filters:", np.linalg.norm(dL_dconv2_filters))
         # print("Gradients at Conv1 Filters:", np.linalg.norm(dL_dconv1_filters))
-        print("Gradient Norms:")
-        print("Conv1 Filters:", np.linalg.norm(dL_dconv1_filters))
-        print("Conv1 Biases:", np.linalg.norm(dL_dconv1_biases))
-        print("Conv2 Filters:", np.linalg.norm(dL_dconv2_filters))
-        print("Conv2 Biases:", np.linalg.norm(dL_dconv2_biases))
-        print("FC1 Weights:", np.linalg.norm(dL_dfc1_weights))
-        print("FC1 Biases:", np.linalg.norm(dL_dfc1_biases))
-        print("FC2 Weights:", np.linalg.norm(dL_dfc2_weights))
-        print("FC2 Biases:", np.linalg.norm(dL_dfc2_biases))
-        print("Output Weights:", np.linalg.norm(dL_doutput_weights))
-        print("Output Biases:", np.linalg.norm(dL_doutput_biases))
+        # print("Gradient Norms:")
+        # print("Conv1 Filters:", np.linalg.norm(dL_dconv1_filters))
+        # print("Conv1 Biases:", np.linalg.norm(dL_dconv1_biases))
+        # print("Conv2 Filters:", np.linalg.norm(dL_dconv2_filters))
+        # print("Conv2 Biases:", np.linalg.norm(dL_dconv2_biases))
+        # print("FC1 Weights:", np.linalg.norm(dL_dfc1_weights))
+        # print("FC1 Biases:", np.linalg.norm(dL_dfc1_biases))
+        # print("FC2 Weights:", np.linalg.norm(dL_dfc2_weights))
+        # print("FC2 Biases:", np.linalg.norm(dL_dfc2_biases))
+        # print("Output Weights:", np.linalg.norm(dL_doutput_weights))
+        # print("Output Biases:", np.linalg.norm(dL_doutput_biases))
 
-        print("Loss for first batch:", loss)
+        # print("Loss for first batch:", loss)
 
 
 
