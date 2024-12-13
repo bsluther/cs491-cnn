@@ -42,7 +42,7 @@ for epoch in range(epochs):
         # Backprop and update weights
         # print("Input range (train):", x_train.min(), x_train.max())
         # print("Input range (test):", x_test.min(), x_test.max())
-        loss = lenet5.backprop(x_batch, y_batch, learning_rate=0.1, learning_rate_conv=0.5)
+        loss = lenet5.backprop(x_batch, y_batch, learning_rate=0.01, learning_rate_conv=0.5)
 
         total_loss += loss
         batch_count += 1
