@@ -16,7 +16,7 @@ num_classes = 10
 lenet5 = CNN(input_shape, num_classes)
 
 # Now train the CNN on MNIST data, for example:
-batch_size = 64
+batch_size = 16
 epochs = 1
 
 
@@ -27,7 +27,7 @@ def create_batches(data, labels, batch_size):
 
 for epoch in range(epochs):
     print(f"\nEpoch {epoch + 1}/{epochs}")
-    train_batches = create_batches(x_train, y_train, batch_size)
+    train_batches = create_batches(x_train[:256, ...], y_train[:256, ...], batch_size)
 
     total_loss = 0
     batch_count = 0
@@ -50,7 +50,7 @@ for epoch in range(epochs):
         # print("Input range (train):", x_train.min(), x_train.max())
         # print("Input range (test):", x_test.min(), x_test.max())
         loss = lenet5.backprop(
-            x_batch_padded, y_batch, learning_rate=0.01, learning_rate_conv=0.5
+            x_batch_padded, y_batch, learning_rate=0.1, learning_rate_conv=0.5
         )
 
         total_loss += loss
@@ -65,7 +65,14 @@ test_batches = create_batches(x_test, y_test, batch_size)
 correct_predictions = 0
 total_samples = 0
 for x_batch, y_batch in test_batches:
-    outputs = lenet5.forward(x_batch)
+    padding = 2
+    x_batch_padded = np.pad(
+        x_batch,
+        ((0, 0), (padding, padding), (padding, padding), (0, 0)),
+        mode="constant",
+        constant_values=0,
+    )
+    outputs = lenet5.forward(x_batch_padded)
     predictions = np.argmax(outputs, axis=1)
     labels = np.argmax(y_batch, axis=1)
     correct_predictions += np.sum(predictions == labels)

@@ -28,10 +28,34 @@ a = np.array(
 )
 b = a[1]
 # print(a.shape)
-print(b.reshape(b.shape[0], -1))
+# print(b.reshape(b.shape[0], -1))
 
 
-def convolve2d(x, filter, padding):
+def make_convolution_row(F, input_len):
+    filter_len = F.shape[0]
+    padded = np.pad(F, ((0, 0), (0, input_len - filter_len)), "constant")
+    flattened = padded.flatten()
+    with_zeros = np.append(flattened, np.zeros(input_len * (input_len - filter_len)))
+    return with_zeros
+
+
+def make_convolution_matrix(F, input_len):
+    filter_len = F.shape[0]
+    output_len = input_len - filter_len + 1
+
+    C = np.empty((0, input_len * input_len))
+
+    conv_template = make_convolution_row(F, input_len)
+
+    for i in range(0, output_len):
+        for j in range(0, output_len):
+            rolled = np.roll(conv_template, i * input_len + j)
+            C = np.vstack([C, rolled])
+
+    return C
+
+
+def convolve_2d_mtx(x, filter, padding):
     if padding > 0:
         x = np.pad(
             x,
@@ -39,49 +63,32 @@ def convolve2d(x, filter, padding):
             mode="constant",
             constant_values=0,
         )
-    in_height, in_width = x.shape
-    f_height, f_width = filter.shape
-    out_height = in_height - f_height + 1
-    out_width = in_width - f_width + 1
-    output = np.zeros((out_height, out_width))
-    for row_offset in range(out_height):
-        for col_offset in range(out_width):
-            region = x[
-                row_offset : row_offset + f_height, col_offset : col_offset + f_width
-            ]
-            output[row_offset, col_offset] = np.sum(region * filter)
-    return output
+    n = x.shape[0]
+    m = filter.shape[0]
+    c = make_convolution_matrix(filter, x.shape[0])
+    result = c @ x.flatten()
+    return result.reshape((n - m + 1, n - m + 1))
 
 
-# x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
-# f = np.array([[0, 1], [2, 3]])
-# res = convolve2d(x, f, 1)
-# print(res)
-# print(x / 2)
+x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
+f = np.array([[0, 1], [2, 3]])
+print(convolve_2d_mtx(x, f, 0))
 
 
-# input_shape = (32, 32, 3)
-# num_classes = 10
-# lenet5 = CNN(input_shape, num_classes)
+def example_slides():
+    X = np.array(
+        [
+            [0, 4, 2, 1, 3],
+            [-1, 0, 1, -2, 2],
+            [3, 1, 2, 0, 1],
+            [0, 1, 4, 1, 2],
+            [2, 3, 1, 1, 0],
+        ]
+    )
+    K = np.array([[1, 0], [-1, 2]])
 
-# ex_filter = np.array([[0, 1], [2, 3]]).reshape((2, 2, 1))
+    conv_mtx = make_convolution_matrix(K, X.shape[0])
 
-# batch_size = 1
-# num_filters = 1
-# input_channels = 1
-# input_height = 3
-# input_width = 3
-# filters = np.zeros(
-#     (num_filters, ex_filter.shape[0], ex_filter.shape[1], input_channels)
-# )
-# filters[0] = ex_filter
-# biases = np.zeros(input_channels)
-# stride = 1
-# padding = 1
-
-# ex_X = np.zeros((batch_size, input_height, input_width, input_channels))
-# ex_input = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]]).reshape((3, 3, 1))
-# ex_X[0] = ex_input
-
-# out = lenet5.convolve(ex_X, filters, biases, stride, padding)
-# bp = 1
+    f_bar = X.flatten()
+    o = conv_mtx @ f_bar + np.ones(conv_mtx.shape[0])
+    print(o)

@@ -24,30 +24,32 @@ class CNN:
         # The first convolutional layer has 6 filters of size 5x5x(input_channels).
 
         limit_conv1 = np.sqrt(2 / (input_shape[2] * 5 * 5))  # For Conv1
-        self.conv1_filters = np.random.uniform(
-            -limit_conv1, limit_conv1, (6, 5, 5, input_shape[2])
+        self.conv1_filters = (
+            np.random.uniform(-limit_conv1, limit_conv1, (6, 5, 5, input_shape[2])) * 2
         )
         self.conv1_biases = np.zeros(6)
         self.conv1_out = None
 
         # The second convolutional layer has 16 filters of size 5x5x6.
         limit_conv2 = np.sqrt(2 / (6 * 5 * 5))  # For Conv2
-        self.conv2_filters = np.random.uniform(-limit_conv2, limit_conv2, (16, 5, 5, 6))
+        self.conv2_filters = (
+            np.random.uniform(-limit_conv2, limit_conv2, (16, 5, 5, 6)) * 2
+        )
         self.conv2_biases = np.zeros(16)
         self.conv2_out = None
 
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
         # self.fc1_weights = np.random.randn(120, 256) * 0.01
-        self.fc1_weights = np.random.randn(120, 400) * np.sqrt(2 / 400)
+        self.fc1_weights = np.random.randn(120, 400) * np.sqrt(2 / 400) * 2
         self.fc1_biases = np.zeros(120)
         self.fc1_out = None
         # self.fc2_weights = np.random.randn(84, 120) * 0.01
-        self.fc2_weights = np.random.randn(84, 120) * np.sqrt(2 / 120)
+        self.fc2_weights = np.random.randn(84, 120) * np.sqrt(2 / 120) * 2
         self.fc2_biases = np.zeros(84)
         self.fc2_out = None
         # self.output_weights = np.random.randn(num_classes, 84) * 0.01
-        self.output_weights = np.random.randn(num_classes, 84) * np.sqrt(2 / 84)
+        self.output_weights = np.random.randn(num_classes, 84) * np.sqrt(2 / 84) * 2
         self.output_biases = np.zeros(num_classes)
 
     def relu(self, x):
@@ -194,7 +196,7 @@ class CNN:
 
         # Softmax activation
         probs = self.softmax(self.output)
-        print("Softmax probabilities range:", probs.min(), probs.max())
+        # print("Softmax probabilities range:", probs.min(), probs.max())
 
         # compute cross-entropy loss
         loss, dL_dlogits = self.cross_entropy(probs, y_true)
@@ -215,7 +217,7 @@ class CNN:
         dL_dfc1_weights = np.dot(dL_dfc1_out_relu.T, self.flattened)
         dL_dfc1_biases = np.sum(dL_dfc1_out_relu, axis=0)
         dL_dflattened = np.dot(dL_dfc1_out_relu, self.fc1_weights)
-        print(f"dL_dfc1_out min = {dL_dfc1_out.min()}, max = {dL_dfc1_out.max()}")
+        # print(f"dL_dfc1_out min = {dL_dfc1_out.min()}, max = {dL_dfc1_out.max()}")
 
         # gradients for flattened input
         dL_dpool2_out = dL_dflattened.reshape(self.pool2_out.shape)
@@ -232,7 +234,7 @@ class CNN:
         dL_dpool1_out, dL_dconv2_filters, dL_dconv2_biases = self.back_prop_single_conv(
             self.pool1_out, dL_dconv2_out, self.conv2_filters
         )
-        print(f"dL_dpool2_out min={dL_dpool1_out.min()}, max={dL_dpool1_out.max()}")
+        # print(f"dL_dpool2_out min={dL_dpool1_out.min()}, max={dL_dpool1_out.max()}")
 
         # backprop through max pool 1
         dL_drelu1_out = self.backprop_max_pool(
@@ -266,7 +268,7 @@ class CNN:
         # print("Activation after Conv2:", np.linalg.norm(self.relu2_out))
         # print("Activation after Pool2:", np.linalg.norm(self.pool2_out))
 
-        print("========================")
+        # print("========================")
 
         # print("Gradients at FC2 Weights:", np.linalg.norm(dL_dfc2_weights))
         # print("Gradients at FC1 Weights:", np.linalg.norm(dL_dfc1_weights))
@@ -449,8 +451,8 @@ class CNN:
         dL_dK = dL_dK / batch_size
         return dL_dK
 
-    def leaky_relu_derivative(self, x, alpha=0.01):
-        return np.where(x > 0, 1, alpha)
+    # def leaky_relu_derivative(self, x, alpha=0.01):
+    #     return np.where(x > 0, 1, alpha)
 
     def backprop_input_gradient(self, input_data, dL_dY, kernels, stride=1, padding=1):
         padding = kernels.shape[1] - 1
@@ -516,12 +518,12 @@ class CNN:
         # )  # add padding that was done during the forward pass, index matching
 
         ### CHANGED
-        padded = np.pad(
-            input_data,
-            ((0, 0), (padding, padding), (padding, padding), (0, 0)),
-            "constant",
-            constant_values=0,
-        )
+        # padded = np.pad(
+        #     input_data,
+        #     ((0, 0), (padding, padding), (padding, padding), (0, 0)),
+        #     "constant",
+        #     constant_values=0,
+        # )
 
         # dL/dk (f, k_h,w_h,c) = sigma b,h_out,w_out over x(b,h_out*stride+k_h,w_out*stride+k_w,c)*dl/dy(b,h_out,w_out,f)
         # for f in range(f):  # loop kernal
