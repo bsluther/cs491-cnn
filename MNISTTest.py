@@ -36,10 +36,13 @@ for epoch in range(epochs):
         # Forward pass
         lenet5.forward(x_batch)
         # Backprop and update weights
-        loss = lenet5.backprop(x_batch, y_batch, learning_rate=0.001)
+        # print("Input range (train):", x_train.min(), x_train.max())
+        # print("Input range (test):", x_test.min(), x_test.max())
+        loss = lenet5.backprop(x_batch, y_batch, learning_rate=0.01, learning_rate_conv=0.5)
+
         total_loss += loss
         batch_count += 1
-        print(f"Current loss: {total_loss}")
+        print(f"Current loss: {loss}")
 
     avg_loss = total_loss / batch_count
     print(f"Epoch {epoch + 1} completed. Average Loss: {avg_loss:.4f}")
