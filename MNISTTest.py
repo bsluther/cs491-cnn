@@ -41,9 +41,18 @@ for epoch in range(epochs):
             constant_values=0,
         )
         # Forward pass
-        lenet5.forward(x_batch_padded)
+        lenet5.forward(x_batch)
+        # print("Conv1 Output Mean:", np.mean(lenet5.conv1_out))
+        # print("Pool1 Output Mean:", np.mean(lenet5.pool1_out))
+        # print("Conv2 Output Mean:", np.mean(lenet5.conv2_out))
+        # print("Pool2 Output Mean:", np.mean(lenet5.pool2_out))
         # Backprop and update weights
-        loss = lenet5.backprop(x_batch_padded, y_batch, learning_rate=0.001)
+        # print("Input range (train):", x_train.min(), x_train.max())
+        # print("Input range (test):", x_test.min(), x_test.max())
+        loss = lenet5.backprop(
+            x_batch, y_batch, learning_rate=0.01, learning_rate_conv=0.5
+        )
+
         total_loss += loss
         batch_count += 1
         print(f"Current loss: {loss}")
