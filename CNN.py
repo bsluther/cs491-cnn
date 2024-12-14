@@ -179,14 +179,8 @@ class CNN:
 
     # backpropagation method
     def backprop(self, x, y_true, learning_rate=0.001, learning_rate_conv=0.5):
-        """
-        Perform backpropagation and update the weights for all layers.
-        - x: Input data (batch_size, height, width, channels).
-        - y_true: True labels (batch_size, num_classes).
-        - learning_rate: Learning rate for gradient descent.
-        """
 
-        # Softmax activation
+        # softmax activation
         probs = self.softmax(self.output)
         # print("Softmax probabilities range:", probs.min(), probs.max())
 
@@ -214,29 +208,29 @@ class CNN:
         # gradients for flattened input
         dL_dpool2_out = dL_dflattened.reshape(self.pool2_out.shape)
 
-        # backprop through max pool 2
+        # backprop for max pool 2
         dL_drelu2_out = self.backprop_max_pool(
             dL_dpool2_out, self.relu2_out, pool_size=(2, 2), stride=2
         )
 
-        # backprop through ReLU 2
+        # backprop for ReLU 2
         dL_dconv2_out = dL_drelu2_out * self.leaky_relu_derivative(self.conv2_out)
 
-        # backprop through convolution 2
+        # backprop for convolution 2
         dL_dpool1_out, dL_dconv2_filters, dL_dconv2_biases = self.back_prop_single_conv(
             self.pool1_out, dL_dconv2_out, self.conv2_filters
         )
         # print(f"dL_dpool2_out min={dL_dpool1_out.min()}, max={dL_dpool1_out.max()}")
 
-        # backprop through max pool 1
+        # backprop for max pool 1
         dL_drelu1_out = self.backprop_max_pool(
             dL_dpool1_out, self.relu1_out, pool_size=(2, 2), stride=2
         )
 
-        # backprop through ReLU 1
+        # backprop for ReLU 1
         dL_dconv1_out = dL_drelu1_out * self.leaky_relu_derivative(self.conv1_out)
 
-        # backprop through convolution 1
+        # backprop for convolution 1
         _, dL_dconv1_filters, dL_dconv1_biases = self.back_prop_single_conv(
             x, dL_dconv1_out, self.conv1_filters
         )
@@ -283,13 +277,7 @@ class CNN:
         return loss
 
     def backprop_max_pool(self, dL_dout, x, pool_size=(2, 2), stride=2):
-        """
-        Backpropagate through a max pooling layer.
-        - dL_dout: Gradient of loss with respect to the max pooled output.
-        - x: Input to the pooling layer.
-        - pool_size: Tuple (height, width) of the pooling region.
-        - stride: Stride of the pooling operation.
-        """
+
         # initialize the gradient w.r.t. input as zeros
         dL_in = np.zeros_like(x)
 
@@ -494,16 +482,16 @@ class CNN:
         else:
             y_true_indices = y_true
 
-        # advoid modifying probs directly to prevent side effects
+        # avoid modifying probs directly
         dL_dlogits = np.copy(probs)
 
-        # select the probabilities corresponding to the true classes
+        # select probabilities corresponding to the true classes
         correct_probs = probs[range(batch_size), y_true_indices]
 
-        # compute the cross-entropy loss
+        # compute cross-entropy loss
         loss = -np.sum(np.log(correct_probs)) / batch_size
 
-        # compute the gradient with respect to logits
+        # compute gradient with respect to output
         dL_dlogits[range(batch_size), y_true_indices] -= 1
         dL_dlogits /= batch_size
 
