@@ -56,23 +56,24 @@ def make_convolution_matrix(F, input_len):
 
 
 def convolve_2d_mtx(x, filter, padding):
+    x_padded = x
     if padding > 0:
-        x = np.pad(
+        x_padded = np.pad(
             x,
             ((padding, padding), (padding, padding)),
             mode="constant",
             constant_values=0,
         )
-    n = x.shape[0]
+    n = x_padded.shape[0]
     m = filter.shape[0]
-    c = make_convolution_matrix(filter, x.shape[0])
-    result = c @ x.flatten()
+    c = make_convolution_matrix(filter, x_padded.shape[0])
+    result = c @ x_padded.flatten()
     return result.reshape((n - m + 1, n - m + 1))
 
 
 x = np.array([[0, 1, 2], [3, 4, 5], [6, 7, 8]])
 f = np.array([[0, 1], [2, 3]])
-print(convolve_2d_mtx(x, f, 0))
+# print(convolve_2d_mtx(x, f, 0))
 
 
 def example_slides():
