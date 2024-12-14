@@ -10,13 +10,6 @@ class CNN:
         - num_classes: int, the number of classes in the output layer.
         """
 
-        self.output = None
-        self.flattened = None
-        self.pool2_out = None
-        self.relu2_out = None
-        self.pool1_out = None
-        self.relu1_out = None
-
         self.input_shape = input_shape
         self.num_classes = num_classes
 
@@ -28,7 +21,6 @@ class CNN:
             np.random.uniform(-limit_conv1, limit_conv1, (6, 5, 5, input_shape[2])) * 2
         )
         self.conv1_biases = np.zeros(6)
-        self.conv1_out = None
 
         # The second convolutional layer has 16 filters of size 5x5x6.
         limit_conv2 = np.sqrt(2 / (6 * 5 * 5))  # For Conv2
@@ -36,18 +28,17 @@ class CNN:
             np.random.uniform(-limit_conv2, limit_conv2, (16, 5, 5, 6)) * 2
         )
         self.conv2_biases = np.zeros(16)
-        self.conv2_out = None
 
         # Fully connected layers are defined with their weights and biases.
         # Sizes are based on the output of the previous layers.
         # self.fc1_weights = np.random.randn(120, 256) * 0.01
         self.fc1_weights = np.random.randn(120, 400) * np.sqrt(2 / 400) * 2
         self.fc1_biases = np.zeros(120)
-        self.fc1_out = None
+
         # self.fc2_weights = np.random.randn(84, 120) * 0.01
         self.fc2_weights = np.random.randn(84, 120) * np.sqrt(2 / 120) * 2
         self.fc2_biases = np.zeros(84)
-        self.fc2_out = None
+
         # self.output_weights = np.random.randn(num_classes, 84) * 0.01
         self.output_weights = np.random.randn(num_classes, 84) * np.sqrt(2 / 84) * 2
         self.output_biases = np.zeros(num_classes)
