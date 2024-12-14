@@ -12,7 +12,7 @@ print(f"Testing data shape: {x_test.shape}, Testing labels shape: {y_test.shape}
 x_train = x_train / 255.0
 x_test = x_test / 255.0
 
-# Flattening labels (if required by your implementation)
+# Flattening labels
 y_train = y_train.flatten()
 y_test = y_test.flatten()
 
