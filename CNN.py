@@ -1,4 +1,5 @@
 import numpy as np
+from dev_brian import convolve_2d_mtx
 
 
 class CNN:
@@ -474,6 +475,8 @@ class CNN:
         for batch in range(batch_size):
             for i in range(in_depth):
                 for j in range(num_kernels):
+                    arg1 = dL_dY[batch, :, :, j]
+                    arg2 = rotated_kernels[j, :, :, i]
                     dL_dX[batch, :, :, i] += convolve2d(
                         dL_dY[batch, :, :, j], rotated_kernels[j, :, :, i], padding
                     )

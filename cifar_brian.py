@@ -6,6 +6,8 @@
 from tensorflow.keras.datasets import cifar10  # type: ignore
 import numpy as np
 from CNN import CNN
+import cProfile
+import re
 
 # Loading the CIFAR-10 dataset
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
@@ -14,28 +16,28 @@ print(f"Training data shape: {x_train.shape}, Training labels shape: {y_train.sh
 print(f"Testing data shape: {x_test.shape}, Testing labels shape: {y_test.shape}")
 
 # Normalizing the pixel values
-x_train = x_train / 255.0
-x_test = x_test / 255.0
+x_train = x_train.astype("float32") / 255.0
+x_test = x_test.astype("float32") / 255.0
 
-# Flattening labels (if required by your implementation)
+# Flattening labels
 y_train = y_train.flatten()
 y_test = y_test.flatten()
 
 # One-hot encoding for the labels
 num_classes = 10
-y_train_one_hot = np.eye(num_classes)[y_train]
-y_test_one_hot = np.eye(num_classes)[y_test]
+# y_train_one_hot = np.eye(num_classes)[y_train]
+# y_test_one_hot = np.eye(num_classes)[y_test]
 
-print("Sample normalized pixel value:", x_train[0, 0, 0, 0])
-print("Sample one-hot encoded label:", y_train_one_hot[0])
+# print("Sample normalized pixel value:", x_train[0, 0, 0, 0])
+# print("Sample one-hot encoded label:", y_train_one_hot[0])
 
 input_shape = (32, 32, 3)
 num_classes = 10
 lenet5 = CNN(input_shape, num_classes)
 
-batch_size = 32
-learning_rate = 0.01
-learning_rate_conv = 0.5
+batch_size = 8
+learning_rate = 0.1
+learning_rate_conv = 0.1
 
 
 def create_batches(data, labels, batch_size):
@@ -65,8 +67,8 @@ def train_on_batches(sample_ix, num_batches):
 
 def test_on_batches(sample_ix, num_batches):
     test_batches = create_batches(
-        x_train[sample_ix : sample_ix + (num_batches * batch_size), ...],
-        y_train[sample_ix : sample_ix + (num_batches * batch_size), ...],
+        x_test[sample_ix : sample_ix + (num_batches * batch_size), ...],
+        y_test[sample_ix : sample_ix + (num_batches * batch_size), ...],
         batch_size=batch_size,
     )
     correct_predictions = 0
@@ -88,7 +90,7 @@ def train():
     test_batch_ix = 0
     num_train_batches = 8
     num_test_batches = 2
-    # max_batches = 1000
+    # max_batches = 1
     while (
         train_batch_ix * batch_size
         < x_train.shape[0]
@@ -102,3 +104,4 @@ def train():
 
 
 train()
+# cProfile.run("train()", sort="tottime")
