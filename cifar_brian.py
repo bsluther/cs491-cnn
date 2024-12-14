@@ -35,7 +35,7 @@ input_shape = (32, 32, 3)
 num_classes = 10
 lenet5 = CNN(input_shape, num_classes)
 
-batch_size = 8
+batch_size = 16
 learning_rate = 0.1
 learning_rate_conv = 0.1
 

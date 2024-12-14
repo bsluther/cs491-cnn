@@ -319,6 +319,62 @@ class CNN:
 
         return dL_in
 
+    def backprop_kernel_gradient(self, input_data, dL_dY, kernels):
+        dL_dK = np.zeros_like(kernels, dtype=np.float64)
+        batch_size = input_data.shape[0]
+        in_depth = input_data.shape[3]
+        num_kernels = kernels.shape[0]
+        for batch in range(batch_size):
+            for j in range(num_kernels):
+                # Compute the gradient of the jth kernel
+                for i in range(in_depth):
+                    # Compute the ith channel of the gradient by convolving the input data with
+                    # the output gradient
+                    dL_dK[j, :, :, i] += convolve2d(
+                        input_data[batch, :, :, i], dL_dY[batch, :, :, j], 0
+                    )
+        # We want the average gradient over the batch
+        dL_dK = dL_dK / batch_size
+        return dL_dK
+
+    # def leaky_relu_derivative(self, x, alpha=0.01):
+    #     return np.where(x > 0, 1, alpha)
+
+    def backprop_input_gradient(self, input_data, dL_dY, kernels):
+        padding = kernels.shape[1] - 1
+        # gradient with respect to the input
+        dL_dX = np.zeros_like(input_data)
+
+        # rotate all the kernels by 180 degrees
+        rotated_kernels = np.zeros_like(kernels)
+        for kernel_indx in range((kernels.shape[0])):
+            current_kernel = kernels[kernel_indx]
+            rotated_kernels[kernel_indx] = np.rot90(current_kernel, 2, (0, 1))
+
+        batch_size = input_data.shape[0]
+        in_depth = input_data.shape[3]
+        num_kernels = kernels.shape[0]
+        for batch in range(batch_size):
+            for i in range(in_depth):
+                # Compte the ith channel of the input gradient
+                for j in range(num_kernels):
+                    # Pad the jth channel of the output gradient and convolve with the ith channel
+                    # of the (rotated) jth kernel
+                    dL_dX[batch, :, :, i] += convolve2d(
+                        dL_dY[batch, :, :, j], rotated_kernels[j, :, :, i], padding
+                    )
+        return dL_dX
+
+    def back_prop_single_conv(self, input_data, dL_dY, kernels):
+        # gradient with respect to the biases (one per kernel)
+        dL_db = np.sum(dL_dY, axis=(0, 1, 2))
+        # gradient with respect to the input
+        dL_dX = self.backprop_input_gradient(input_data, dL_dY, kernels)
+        # gradient with respect to the kernel
+        dL_dK = self.backprop_kernel_gradient(input_data, dL_dY, kernels)
+
+        return dL_dX, dL_dK, dL_db
+
     def test_backprop_max_pool(self):
         """
         Test backpropagation through max pooling with a simple example.
@@ -363,9 +419,7 @@ class CNN:
         kernels = np.array([[[[1], [0]], [[0], [1]]]])  # Shape: (1, 2, 2, 1)
 
         # Call the backprop_kernel_gradient function
-        dL_dK = self.backprop_kernel_gradient(
-            input_data, dL_dY, kernels, stride=1, padding=0
-        )
+        dL_dK = self.backprop_kernel_gradient(input_data, dL_dY, kernels)
 
         # Print the computed gradient
         print("Gradient with respect to kernels (dL_dK):")
@@ -426,127 +480,6 @@ class CNN:
         ), "Convolution output does not match expected output!"
         print("Convolution function test passed!")
 
-    def backprop_kernel_gradient(self, input_data, dL_dY, kernels, stride=1, padding=1):
-        dL_dK = np.zeros_like(
-            kernels, dtype=np.float64
-        )  # gradient with respect to the kernels
-        batch_size = input_data.shape[0]
-        in_depth = input_data.shape[3]
-        num_kernels = kernels.shape[0]
-        for batch in range(batch_size):
-            for j in range(num_kernels):
-                for i in range(in_depth):
-                    dL_dK[j, :, :, i] += convolve2d(
-                        input_data[batch, :, :, i], dL_dY[batch, :, :, j], 0
-                    )
-        dL_dK = dL_dK / batch_size
-        return dL_dK
-
-    # def leaky_relu_derivative(self, x, alpha=0.01):
-    #     return np.where(x > 0, 1, alpha)
-
-    def backprop_input_gradient(self, input_data, dL_dY, kernels, stride=1, padding=1):
-        padding = kernels.shape[1] - 1
-
-        dL_dX = np.zeros_like(input_data)  # gradient with respect to the input
-
-        rotated_kernels = np.zeros_like(kernels)
-
-        # rotate all the kernels by 180 degrees
-        for kernel_indx in range((kernels.shape[0])):
-            current_kernel = kernels[kernel_indx]
-            rotated_kernels[kernel_indx] = np.rot90(
-                current_kernel, 2, (0, 1)
-            )  # rotate the kernel by 180 degrees
-
-        batch_size = input_data.shape[0]
-        in_depth = input_data.shape[3]
-        num_kernels = kernels.shape[0]
-        for batch in range(batch_size):
-            for i in range(in_depth):
-                for j in range(num_kernels):
-                    arg1 = dL_dY[batch, :, :, j]
-                    arg2 = rotated_kernels[j, :, :, i]
-                    dL_dX[batch, :, :, i] += convolve2d(
-                        dL_dY[batch, :, :, j], rotated_kernels[j, :, :, i], padding
-                    )
-        return dL_dX
-
-    def back_prop_single_conv(self, input_data, dL_dY, kernels, stride=1, padding=1):
-
-        padding2 = kernels.shape[1] - 1
-
-        dL_dX = np.zeros_like(input_data)  # gradient with respect to the input
-        dL_dK = np.zeros_like(kernels)  # gradient with respect to the kernels
-        dL_db = np.sum(
-            dL_dY, axis=(0, 1, 2)
-        )  # gradient with respect to the biases (One per kernel)
-
-        rotated_kernels = np.zeros_like(kernels)
-
-        # rotate all the kernels by 180 degrees
-        for kernel_indx in range((kernels.shape[0])):
-            current_kernel = kernels[kernel_indx]
-            rotated_kernels[kernel_indx] = np.rot90(
-                current_kernel, 2, (0, 1)
-            )  # rotate the kernel by 180 degrees
-
-        other_dL_dX = self.backprop_input_gradient(
-            input_data, dL_dY, kernels, stride, padding
-        )
-        dL_dX = other_dL_dX
-        # comparison = np.allclose(dL_dX, other, 1e-100)
-
-        # get lengths and dimensions to iterate over
-        b, h_in, w_in, c_in = (
-            input_data.shape
-        )  # b = batch size, h = input height, w = input width , c = input channels
-        f, k_h, k_w, _ = (
-            kernels.shape
-        )  # f - filters, h - kernal height, w - keneral width
-        _, h_out, w_out, _ = dL_dY.shape  # h - output height , w- output width
-
-        # padded = np.pad(
-        #     input_data, (0, 0), (padding, padding), (padding, padding), (0, 0)
-        # )  # add padding that was done during the forward pass, index matching
-
-        ### CHANGED
-        # padded = np.pad(
-        #     input_data,
-        #     ((0, 0), (padding, padding), (padding, padding), (0, 0)),
-        #     "constant",
-        #     constant_values=0,
-        # )
-
-        # dL/dk (f, k_h,w_h,c) = sigma b,h_out,w_out over x(b,h_out*stride+k_h,w_out*stride+k_w,c)*dl/dy(b,h_out,w_out,f)
-        # for f in range(f):  # loop kernal
-        #     for k_h_input in range(k_h):  # loop height
-        #         for k_w_input in range(k_w):  # loop width
-        #             for c in range(c_in):  # loop input
-        #                 val = 0.0  # gradient accumulation
-        #                 for b in range(b):
-        #                     for h_out_i in range(h_out):
-        #                         for w_out_i in range(
-        #                             w_out
-        #                         ):  # for the output compute the corresponding corrd
-        #                             h_in = h_out_i * stride + k_h_input
-        #                             w_in = w_out_i * stride + k_w_input
-        #                             val += (
-        #                                 padded[b, h_in, w_in, c]
-        #                                 * dL_dY[b, h_out_i, w_out_i, f]
-        #                             )
-        #                 dL_dK[f, k_h_input, k_w_input, c] = (
-        #                     val  # store grad for position
-        #                 )
-
-        other_dL_dK = self.backprop_kernel_gradient(
-            input_data, dL_dY, kernels, stride, padding
-        )
-        dL_dK = other_dL_dK
-        # comparison = np.allclose(dL_dK, other_dL_dX, 1e-100)
-        bp = 1
-        return dL_dX, dL_dK, dL_db
-
     def softmax(self, x):
         exp_x = np.exp(x - np.max(x, axis=1, keepdims=True))
         return exp_x / np.sum(exp_x, axis=1, keepdims=True)
@@ -576,17 +509,7 @@ class CNN:
 
         return loss, dL_dlogits
 
-    # for f in range(kernels.shape[0]):
-    #     dL_dK[kernel_indx] = self.convolve( # we convolve over the input for the current partial
-    #         input_data,
-    #         dL_dY[kernel_indx],
-    #         biases = None,
-    #         stride=stride,
-    #         padding=padding
-    #     )
 
-
-# Trying to debug backprop_single_conv so made something simpler than the batched/3d conv function
 def convolve2d(x, filter, padding):
     if padding > 0:
         x = np.pad(
