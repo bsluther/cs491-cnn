@@ -289,30 +289,29 @@ class CNN:
         - pool_size: Tuple (height, width) of the pooling region.
         - stride: Stride of the pooling operation.
         """
-        # Initialize gradient w.r.t. input as zeros
+        # initialize the gradient w.r.t. input as zeros
         dL_in = np.zeros_like(x)
 
         batch_size, height, width, channels = x.shape
         out_height, out_width = dL_dout.shape[1:3]
 
-        # Iterate through each input in the batch
+        # iterate through each input in the batch
         for b in range(batch_size):
             for c in range(channels):
                 for h_out in range(out_height):
                     for w_out in range(out_width):
-                        # Compute the starting indices of the window in the input
+                        # compute the starting indices of the window in the input
                         h_start = h_out * stride
                         w_start = w_out * stride
                         h_end = min(h_start + pool_size[0], height)
                         w_end = min(w_start + pool_size[1], width)
 
-                        # The current window
                         window = x[b, h_start:h_end, w_start:w_end, c]
 
-                        # Find the index of the maximum value in the window
+                        # find the index of the maximum value in the window
                         max_idx = np.unravel_index(np.argmax(window), window.shape)
 
-                        # Map the gradient back to the maximum value position in the input
+                        # map the gradient back to the maximum value position in the input
                         dL_in[
                             b, h_start + max_idx[0], w_start + max_idx[1], c
                         ] += dL_dout[b, h_out, w_out, c]
